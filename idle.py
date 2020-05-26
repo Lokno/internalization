@@ -10,7 +10,7 @@ import socket
 import re,os,time,sys
 import wave
 import configparser
-import traceback
+import logging
 
 def writefile(percent):
    with open(filePath,'w') as f:
@@ -21,6 +21,9 @@ def getAvg(sum,count):
    if count > 0:
       avg = sum/count
    return avg
+
+LOG_FILENAME = 'idle_log.txt'
+logging.basicConfig(filename=LOG_FILENAME, level=logging.INFO)
 
 try:
    # Loading configuration file (ini format)
@@ -143,7 +146,5 @@ try:
       if text.find('PING'.encode()) != -1: 
          irc.send(('PONG ' + text.decode().split() [1] + '\r\n').encode())
          
-except:
-   with open('idle_log.txt','w') as f:
-      print("EXCEPTION OCCURRED: Aborting %s. See idle_log.txt" % sys.argv[0])
-      f.write(traceback.print_exc(file=f))
+except Exception as e:
+   logging.error(e, exc_info=True)
