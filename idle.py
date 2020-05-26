@@ -31,7 +31,7 @@ try:
 
    configFile = 'internalization.cfg'
    if not config.read(configFile):
-      print('ERROR: could not open file %s' % configFile)
+      logging.info('ERROR: could not open file %s' % configFile)
       sys.exit(-1)
 
    server   = config.get('MAIN','server')
@@ -59,22 +59,22 @@ try:
          try:
             sound = mixer.Sound(soundFilePath)
          except pyerr:
-            print("ERROR: Could not load file %s. 32-bit WAVs are not supported." % soundFilePath)
+            logging.info("ERROR: Could not load file %s. 32-bit WAVs are not supported." % soundFilePath)
             load_issue = True
       except ModuleNotFoundError:
-         print("ERROR: Could not load pygame.mixer. Did you install it? >> python -m pip install pygame")
+         logging.info("ERROR: Could not load pygame.mixer. Did you install it? >> python -m pip install pygame")
          load_issue = True
 
       if load_issue:
-         print("Issue loading, defaulting to System.Media.SoundPlayer playback...")
+         logging.info("Issue loading, defaulting to System.Media.SoundPlayer playback...")
          usePygame = False
 
    irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-   print("connecting to:" + server)
+   logging.info("connecting to:" + server)
    irc.connect((server, 6667))
-   print("connected!")
-   print("joining channel '%s' as '%s'..." % (channel,botnick))
+   logging.info("connected!")
+   logging.info("joining channel '%s' as '%s'..." % (channel,botnick))
 
    irc.send(("PASS " + password + "\n").encode())
    irc.send(("NICK " + botnick  + "\n").encode())
