@@ -104,71 +104,68 @@ try:
    threshold = 3 * 60
    lastPing = time.time()
    while connected:
-      try:
-         text     = irc.recv(2048)
-         currTime = time.time()
+      text     = irc.recv(2048)
+      currTime = time.time()
 
-         percM = percRE.search(text.decode())
-         nameM = nameRE.search(text.decode())
+      percM = percRE.search(text.decode())
+      nameM = nameRE.search(text.decode())
 
-         if nameM and percM:
-            # nonsense numbers from chat are converted
-            # to integers in the range [0,100]
-            # what does 0.5% internalization even mean?
-            # also this can be -inf or inf, which is fun
-            val = float(percM.group(1))
-            val = int(max(0,min(val,100)))
+      if nameM and percM:
+         # nonsense numbers from chat are converted
+         # to integers in the range [0,100]
+         # what does 0.5% internalization even mean?
+         # also this can be -inf or inf, which is fun
+         val = float(percM.group(1))
+         val = int(max(0,min(val,100)))
 
-            currName = nameM.group(1)
+         currName = nameM.group(1)
 
-            # update sum, count and map
-            if currName in voteMap:
-               vsum -= voteMap[currName][0]
-            else:
-               count += 1
-            vsum += val
-            voteMap[currName] = [val,currTime]
+         # update sum, count and map
+         if currName in voteMap:
+            vsum -= voteMap[currName][0]
+         else:
+            count += 1
+         vsum += val
+         voteMap[currName] = [val,currTime]
 
-            percent = getAvg(vsum,count)
-            writefile(percent)
+         percent = getAvg(vsum,count)
+         writefile(percent)
 
-            if soundFilePath != "":
-               # plays a sound file at 100% is it wasn't 100% before this vote and some
-               # period of time has past since the last time it played
-               if percent == 100 and changed and (currTime-lastCooldownCheck) > cooldownSoundfile:
-                  if usePygame:
-                     that_was_good.play()
-                  else:
-                     os.system('powershell -c (New-Object Media.SoundPlayer "%s").PlaySync();' % soundFilePath)   
-                  lastCooldownCheck = currTime
-               elif percent != 100:
-                  changed = True
+         if soundFilePath != "":
+            # plays a sound file at 100% is it wasn't 100% before this vote and some
+            # period of time has past since the last time it played
+            if percent == 100 and changed and (currTime-lastCooldownCheck) > cooldownSoundfile:
+               if usePygame:
+                  that_was_good.play()
+               else:
+                  os.system('powershell -c (New-Object Media.SoundPlayer "%s").PlaySync();' % soundFilePath)   
+               lastCooldownCheck = currTime
+            elif percent != 100:
+               changed = True
 
-         # refreshes the map to remove votes from idle users
-         if (currTime-lastCheck) > updateMapInterval:
-            lastCheck = currTime
-            for k,v in list(voteMap.items()):
-               if (currTime-v[1]) >= lifeTime:
-                  del voteMap[k]
-                  vsum  -= v[0]
-                  count -= 1
+      # refreshes the map to remove votes from idle users
+      if (currTime-lastCheck) > updateMapInterval:
+         lastCheck = currTime
+         for k,v in list(voteMap.items()):
+            if (currTime-v[1]) >= lifeTime:
+               del voteMap[k]
+               vsum  -= v[0]
+               count -= 1
 
-            percent = getAvg(vsum,count)
-            writefile(percent)
+         percent = getAvg(vsum,count)
+         writefile(percent)
 
-         # sends 'PONG' if 'PING' received to prevent pinging out
-         if text.find('PING'.encode()) != -1: 
-            irc.send(('PONG ' + text.decode().split() [1] + '\r\n').encode())
-            lastPing = time.time()
-         
-         if (time.time() - lastPing) > threshold:
-            connected = False
-
-      except socket.timeout:
+      # sends 'PONG' if 'PING' received to prevent pinging out
+      if text.find('PING'.encode()) != -1: 
+         irc.send(('PONG ' + text.decode().split() [1] + '\r\n').encode())
+         lastPing = time.time()
+      
+      if (time.time() - lastPing) > threshold:
+         print("Ping Timeout")
          connected = False
 
       if not connected:
-         print("Server Timeout. Restarting Connection...")
+         print("Restarting Connection...")
          irc.close()
          irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          connection(server, 6667, botnick, password, channel)
