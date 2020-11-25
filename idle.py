@@ -3,8 +3,6 @@
 # percentages. It writes the average percentage from each unique
 # user to a file. Idle contributions are removed after a number of 
 # seconds, as defined by the variable lifeTime declared on line 29
-#
-# Reference: https://twitchtv.desk.com/customer/en/portal/articles/1302780-twitch-irc
 
 import socket
 import re,os,time,sys
@@ -107,7 +105,7 @@ try:
    lastPing = time.time()
    while connected:
       try:
-         text     = irc.recv(2040)
+         text     = irc.recv(2048)
          currTime = time.time()
 
          percM = percRE.search(text.decode())
